@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advan | Modern Minimalist E-Commerce</title>
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        @keyframes fade-in {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-in {
+            animation: fade-in 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #eee;
+            border-radius: 10px;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            height: 4px;
+            background: #e2e8f0;
+            border-radius: 5px;
+            background-image: linear-gradient(#000, #000);
+            background-repeat: no-repeat;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #000;
+            cursor: pointer;
+            box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</head>
+
+<body class="bg-white text-slate-900 selection:bg-black selection:text-white">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo, Fragment } = React;
+
+        // Simple SVG Icon Component to replace Lucide-React in HTML context
+        const Icon = ({ name, className = "w-5 h-5", ...props }) => {
+            const icons = {
+                ShoppingBag: (
+                    <Fragment>
+                        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" /><path d="M3 6h18" /><path d="M16 10a4 4 0 0 1-8 0" />
+                    </Fragment>
+                ),
+                Search: (
+                    <Fragment>
+                        <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
+                    </Fragment>
+                ),
+                Menu: (
+                    <Fragment>
+                        <line x1="4" x2="20" y1="12" y2="12" /><line x1="4" x2="20" y1="6" y2="6" /><line x1="4" x2="20" y1="18" y2="18" />
+                    </Fragment>
+                ),
+                X: (
+                    <Fragment>
+                        <path d="M18 6 6 18" /><path d="m6 6 12 12" />
+                    </Fragment>
+                ),
+                ChevronRight: <path d="m9 18 6-6-6-6" />,
+                ChevronDown: <path d="m6 9 6 6 6-6" />,
+                Star: <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />,
+                ArrowRight: (
+                    <Fragment>
+                        <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
+                    </Fragment>
+                ),
+                Heart: <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />,
+                Trash2: (
+                    <Fragment>
+                        <path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /><line x1="10" x2="10" y1="11" y2="17" /><line x1="14" x2="14" y1="11" y2="17" />
+                    </Fragment>
+                ),
+                Plus: (
+                    <Fragment>
+                        <path d="M5 12h14" /><path d="M12 5v14" />
+                    </Fragment>
+                ),
+                Minus: <path d="M5 12h14" />,
+                CheckCircle: (
+                    <Fragment>
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
+                    </Fragment>
+                ),
+                Truck: (
+                    <Fragment>
+                        <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2" /><path d="M15 18H9" /><path d="M19 18h2a1 1 0 0 0 1-1v-5h-4l-2-3h-3" /><circle cx="7" cy="18" r="2" /><circle cx="17" cy="18" r="2" />
+                    </Fragment>
+                ),
+                ShieldCheck: (
+                    <Fragment>
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" /><path d="m9 12 2 2 4-4" />
+                    </Fragment>
+                ),
+                RotateCcw: (
+                    <Fragment>
+                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" />
+                    </Fragment>
+                ),
+                User: (
+                    <Fragment>
+                        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+                    </Fragment>
+                ),
+                Eye: (
+                    <Fragment>
+                        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" />
+                    </Fragment>
+                ),
+                MapPin: (
+                    <Fragment>
+                        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" />
+                    </Fragment>
+                ),
+                MessageSquare: (
+                    <Fragment>
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                    </Fragment>
+                ),
+                Package: (
+                    <Fragment>
+                        <path d="M16.5 9.4 7.5 4.21" /><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" /><polyline points="3.29 7 12 12 20.71 7" /><line x1="12" x2="12" y1="22" y2="12" />
+                    </Fragment>
+                ),
+                CreditCard: (
+                    <Fragment>
+                        <rect width="20" height="14" x="2" y="5" rx="2" /><line x1="2" x2="22" y1="10" y2="10" />
+                    </Fragment>
+                ),
+                Settings: (
+                    <Fragment>
+                        <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" /><circle cx="12" cy="12" r="3" />
+                    </Fragment>
+                ),
+                LogOut: (
+                    <Fragment>
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" x2="9" y1="12" y2="12" />
+                    </Fragment>
+                ),
+                Bell: (
+                    <Fragment>
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                    </Fragment>
+                ),
+                Facebook: <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />,
+                Instagram: (
+                    <Fragment>
+                        <rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+                    </Fragment>
+                ),
+                Twitter: <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.2-18 11.6 0 0 3.5 0 5.5-1.1-3.4-.7-4.8-2.5-5.3-4.9 1.1.2 2.6.1 3-.1-3.8-.8-5.2-3.1-5-5.9 1 .5 2.1.8 3.3.9-3.4-2.2-4.1-6.1-2.1-9.3 3.9 4.8 9 7.8 15 8.2-.3-2.6.6-5.1 2.5-6.8 3.3-3 8.3-1.1 9.1 3.3 1.2.2 2.4-.4 3.4-1.1-.5 1.5-1.5 2.7-2.8 3.5 1-.1 2.1-.4 3-1-.6 1-1.4 1.8-2.3 2.5z" />,
+                Youtube: (
+                    <Fragment>
+                        <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2c.46-1.7.46-5.33.46-5.33s0-3.65-.46-5.34z" /><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" />
+                    </Fragment>
+                )
+            };
+
+            return (
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className={className}
+                    {...props}
+                >
+                    {icons[name] || null}
+                </svg>
+            );
+        };
+
+        // --- MOCK DATA ---
+        const PRODUCTS = [
+            { id: 1, name: "Minimalist Cotton Sweater", price: 60.00, oldPrice: 80.00, category: "Apparel", brand: "Advan Basic", rating: 5, reviews: 24, availability: "In Stock", tag: "-10%", image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&q=80&w=600", description: "Premium cotton blend for ultimate comfort and style.", specs: ["100% Organic Cotton", "Relaxed Fit", "Machine Washable"] },
+            { id: 2, name: "Modern Grey Backpack", price: 70.00, category: "Accessories", brand: "Urban Carry", rating: 4, reviews: 12, availability: "In Stock", tag: "New", image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&q=80&w=600", description: "Water-resistant materials with dedicated laptop compartment.", specs: ["Waterproof Fabric", "15-inch Laptop Sleeve"] },
+            { id: 3, name: "Classic Acetate Sunglasses", price: 50.00, oldPrice: 65.00, category: "Accessories", brand: "Visionary", rating: 4, reviews: 45, availability: "In Stock", tag: "-15%", image: "https://images.unsplash.com/photo-1572635196237-14b3f281503f?auto=format&fit=crop&q=80&w=600", description: "UV400 protection lenses with a durable handcrafted matte frame.", specs: ["UV400 Protection", "Polarized"] },
+            { id: 4, name: "Summer Straw Panama Hat", price: 33.00, category: "Accessories", brand: "Beachly", rating: 5, reviews: 8, availability: "Low Stock", tag: "New", image: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&q=80&w=600", description: "Lightweight and breathable straw material.", specs: ["Natural Straw", "One Size"] },
+            { id: 5, name: "Tactical Field Watch", price: 49.00, oldPrice: 55.00, category: "Accessories", brand: "Visionary", rating: 4, reviews: 32, availability: "In Stock", tag: "-10%", image: "https://images.unsplash.com/photo-1524592094714-0f0654e20314?auto=format&fit=crop&q=80&w=600", description: "Rugged construction with precision movement.", specs: ["Japanese Movement", "50m Water Resistant"] },
+            { id: 6, name: "Handcrafted Leather Belt", price: 90.00, category: "Accessories", brand: "Advan Basic", rating: 5, reviews: 15, availability: "Out of Stock", tag: "New", image: "https://images.unsplash.com/photo-1624222247344-550fb80583dc?auto=format&fit=crop&q=80&w=600", description: "Full-grain Italian leather.", specs: ["Italian Leather", "Handmade"] },
+            { id: 7, name: "Classic White Sneakers", price: 120.00, category: "Apparel", brand: "Urban Carry", rating: 4, reviews: 89, availability: "In Stock", tag: "Sale", image: "https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&q=80&w=600", description: "Essential minimalist footwear.", specs: ["Calf Leather", "Rubber Sole"] },
+            { id: 8, name: "Wireless Headphones", price: 199.00, category: "Electronics", brand: "TechTone", rating: 5, reviews: 120, availability: "In Stock", tag: "-20%", image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&q=80&w=600", description: "High-fidelity audio with noise cancellation.", specs: ["ANC", "30h Battery"] }
+        ];
+
+        const TESTIMONIALS = [
+            { id: 1, name: "Sarah J.", role: "Fashion Blogger", text: "The quality of the cotton sweater is unmatched. Minimalist perfection!", rating: 5 },
+            { id: 2, name: "Marcus T.", role: "Architect", text: "The Urban Carry backpack is exactly what I needed for my studio commute.", rating: 5 },
+            { id: 3, name: "Elena R.", role: "Digital Nomad", text: "Fast shipping and the packaging was absolutely beautiful.", rating: 4 }
+        ];
+
+        const BRANDS = ["Advan Basic", "Urban Carry", "Visionary", "Beachly", "TechTone"];
+        const CATEGORIES = ["All", "Apparel", "Accessories", "Electronics"];
+
+        // --- MAIN APP COMPONENT ---
+        function App() {
+            const [view, setView] = useState('home');
+            const [activeCategory, setActiveCategory] = useState("All");
+            const [searchQuery, setSearchQuery] = useState("");
+            const [policyType, setPolicyType] = useState('privacy');
+            const [cart, setCart] = useState([]);
+            const [wishlist, setWishlist] = useState([]);
+            const [isCartOpen, setIsCartOpen] = useState(false);
+            const [isMenuOpen, setIsMenuOpen] = useState(false);
+            const [viewedProduct, setViewedProduct] = useState(null);
+            const [toast, setToast] = useState(null);
+            const [checkoutStep, setCheckoutStep] = useState(1);
+            const [isSearchVisible, setIsSearchVisible] = useState(false);
+
+            const [user] = useState({
+                name: "John Doe",
+                email: "john@example.com",
+                orders: [
+                    { id: "ORD-9921", date: "2024-02-15", status: "Delivered", total: 130.00, items: 2 },
+                    { id: "ORD-8812", date: "2023-12-01", status: "Cancelled", total: 45.00, items: 1 }
+                ],
+                addresses: [{ id: 1, label: "Home", street: "123 Fashion Ave", city: "New York", zip: "10123" }]
+            });
+
+            useEffect(() => {
+                window.scrollTo(0, 0);
+                setIsMenuOpen(false);
+            }, [view]);
+
+            const showToast = (message) => {
+                setToast(message);
+                setTimeout(() => setToast(null), 3000);
+            };
+
+            const addToCart = (product) => {
+                if (product.availability === "Out of Stock") {
+                    showToast("Item is currently out of stock.");
+                    return;
+                }
+                setCart(prev => {
+                    const existing = prev.find(item => item.id === product.id);
+                    if (existing) {
+                        return prev.map(item => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item);
+                    }
+                    return [...prev, { ...product, quantity: 1 }];
+                });
+                showToast(`${product.name} added to bag!`);
+            };
+
+            const removeFromCart = (productId) => setCart(prev => prev.filter(item => item.id !== productId));
+            const updateQuantity = (productId, delta) => setCart(prev => prev.map(item => item.id === productId ? { ...item, quantity: Math.max(1, item.quantity + delta) } : item));
+
+            const toggleWishlist = (product) => {
+                setWishlist(prev => {
+                    const exists = prev.find(p => p.id === product.id);
+                    if (exists) return prev.filter(p => p.id !== product.id);
+                    return [...prev, product];
+                });
+                showToast(`${product.name} updated in wishlist.`);
+            };
+
+            const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+            const handleSearch = (e) => {
+                e.preventDefault();
+                if (searchQuery.trim()) {
+                    setView('search');
+                    setIsSearchVisible(false);
+                }
+            };
+
+            const filteredProducts = useMemo(() => {
+                let result = PRODUCTS.filter(p => activeCategory === "All" || p.category === activeCategory);
+                if (view === 'search' && searchQuery) {
+                    result = result.filter(p =>
+                        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        p.brand.toLowerCase().includes(searchQuery.toLowerCase())
+                    );
+                }
+                return result;
+            }, [activeCategory, view, searchQuery]);
+
+            return (
+                <div className="min-h-screen bg-white">
+                    {/* Toast */}
+                    {toast && (
+                        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[300] bg-black text-white px-10 py-4 rounded-full shadow-2xl flex items-center gap-4 animate-in">
+                            <Icon name="CheckCircle" className="w-5 h-5 text-emerald-400" />
+                            <span className="text-[11px] font-black uppercase tracking-[0.2em]">{toast}</span>
+                        </div>
+                    )}
+
+                    {/* Navigation */}
+                    <div className="hidden lg:block border-b border-slate-100 text-[10px] font-bold tracking-widest uppercase py-3 text-slate-400 bg-white">
+                        <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
+                            <div className="flex gap-6">
+                                <span className="cursor-pointer hover:text-rose-500">ENG</span>
+                                <span className="cursor-pointer hover:text-rose-500">USD</span>
+                            </div>
+                            <p className="font-medium normal-case tracking-normal text-slate-500">
+                                Free shipping on orders over <span className="text-rose-500 font-bold">$200.00</span>
+                            </p>
+                        </div>
+                    </div>
+                    <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-100 py-5">
+                        <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
+                            <div className="flex items-center gap-4 lg:hidden">
+                                <Icon name="Menu" className="w-6 h-6 cursor-pointer" onClick={() => setIsMenuOpen(true)} />
+                            </div>
+                            <h1 onClick={() => setView('home')} className="text-3xl font-black tracking-tighter cursor-pointer">Advan.</h1>
+                            <div className="hidden lg:flex items-center gap-10">
+                                <button onClick={() => setView('home')} className={`text-[11px] font-black uppercase tracking-widest ${view === 'home' ? 'text-rose-500' : 'hover:text-rose-500'}`}>Home</button>
+                                <button onClick={() => setView('shop')} className={`text-[11px] font-black uppercase tracking-widest ${view === 'shop' ? 'text-rose-500' : 'hover:text-rose-500'}`}>Shop</button>
+                                <button onClick={() => setView('account')} className={`text-[11px] font-black uppercase tracking-widest ${view === 'account' ? 'text-rose-500' : 'hover:text-rose-500'}`}>Account</button>
+                                <button onClick={() => setView('contact')} className={`text-[11px] font-black uppercase tracking-widest ${view === 'contact' ? 'text-rose-500' : 'hover:text-rose-500'}`}>Contact</button>
+                            </div>
+                            <div className="flex items-center gap-6">
+                                <Icon name="Search" onClick={() => setIsSearchVisible(!isSearchVisible)} className="w-5 h-5 cursor-pointer hover:text-rose-500 transition-colors" />
+                                <Icon name="User" onClick={() => setView('account')} className="w-5 h-5 cursor-pointer hover:text-rose-500 transition-colors" />
+                                <div onClick={() => setIsCartOpen(true)} className="relative cursor-pointer group flex items-center">
+                                    <Icon name="ShoppingBag" className="w-5 h-5 group-hover:text-rose-500" />
+                                    <span className="ml-1 text-[10px] font-black bg-black text-white w-4 h-4 rounded-full flex items-center justify-center">
+                                        {cartCount}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {isSearchVisible && (
+                            <div className="absolute top-full left-0 w-full bg-white border-b border-slate-100 p-6 shadow-xl z-50">
+                                <form onSubmit={handleSearch} className="max-w-3xl mx-auto flex gap-4">
+                                    <input
+                                        autoFocus
+                                        type="text"
+                                        placeholder="Search products, brands, categories..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="flex-1 border-b-2 border-slate-100 py-3 text-lg font-medium focus:outline-none focus:border-black transition-colors"
+                                    />
+                                    <button type="submit" className="bg-black text-white px-8 py-3 text-[11px] font-black uppercase tracking-widest hover:bg-rose-500">Search</button>
+                                </form>
+                            </div>
+                        )}
+                    </nav>
+
+                    <main className="min-h-[70vh]">
+                        {view === 'home' && (
+                            <div className="animate-in fade-in duration-500">
+                                <section className="bg-[#f8f7f5] h-[500px] lg:h-[700px] flex items-center overflow-hidden">
+                                    <div className="max-w-7xl mx-auto px-6 w-full grid lg:grid-cols-2 items-center gap-12">
+                                        <div className="relative z-10 order-2 lg:order-1">
+                                            <img src="https://images.unsplash.com/photo-1488161628813-244a2ceba245?auto=format&fit=crop&q=80&w=800" className="w-full max-w-[450px] drop-shadow-2xl" alt="Hero" />
+                                        </div>
+                                        <div className="order-1 lg:order-2">
+                                            <div className="flex items-center gap-4 mb-6 text-rose-500">
+                                                <div className="h-[2px] w-12 bg-current" />
+                                                <span className="text-sm font-black tracking-[0.4em] uppercase">Limited Offer</span>
+                                            </div>
+                                            <h2 className="text-6xl lg:text-9xl font-light tracking-tighter mb-6 leading-none">Modern <br /><span className="font-black italic">Minimal</span></h2>
+                                            <p className="text-slate-500 text-lg mb-10 max-w-md italic">Exclusive designs for the contemporary wardrobe. Up to 30% off summer essentials.</p>
+                                            <button onClick={() => setView('shop')} className="px-12 py-5 bg-black text-white text-[10px] font-black uppercase tracking-[0.3em] hover:bg-rose-600 transition-all shadow-xl">
+                                                Shop The Collection
+                                            </button>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <section className="py-24 max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8">
+                                    {["Apparel", "Accessories", "Electronics"].map(cat => (
+                                        <div key={cat} className="relative group overflow-hidden h-96 bg-white cursor-pointer" onClick={() => { setActiveCategory(cat); setView('shop'); }}>
+                                            <img src={PRODUCTS.find(p => p.category === cat)?.image} className="w-full h-full object-cover opacity-80 group-hover:scale-110 transition-transform duration-1000" alt={cat} />
+                                            <div className="absolute inset-0 bg-black/10 flex flex-col justify-center items-center text-white">
+                                                <h4 className="text-3xl font-black italic tracking-tighter mb-4">{cat}</h4>
+                                                <div className="text-[10px] font-black uppercase tracking-[0.3em] border-b-2 border-white pb-1">Explore</div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </section>
+
+                                <section className="py-24 max-w-7xl mx-auto px-6 border-t border-slate-50">
+                                    <div className="text-center mb-16">
+                                        <h3 className="text-3xl font-black tracking-tight italic">New Arrivals</h3>
+                                        <p className="text-slate-400 text-sm mt-2">Discover our latest additions.</p>
+                                    </div>
+                                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+                                        {PRODUCTS.slice(4, 8).map(product => (
+                                            <ProductCard key={product.id} product={product} addToCart={addToCart} setView={setView} setViewedProduct={setViewedProduct} toggleWishlist={toggleWishlist} wishlist={wishlist} />
+                                        ))}
+                                    </div>
+                                </section>
+
+                                <section className="py-24 bg-stone-50 overflow-hidden">
+                                    <div className="max-w-7xl mx-auto px-6">
+                                        <div className="text-center mb-16">
+                                            <h3 className="text-2xl font-black tracking-widest uppercase">What Clients Say</h3>
+                                        </div>
+                                        <div className="grid md:grid-cols-3 gap-12">
+                                            {TESTIMONIALS.map(t => (
+                                                <div key={t.id} className="bg-white p-10 border border-slate-100 text-center shadow-sm">
+                                                    <div className="flex justify-center mb-6 text-amber-400">
+                                                        {[...Array(t.rating)].map((_, i) => <Icon key={i} name="Star" className="w-4 h-4 fill-current" />)}
+                                                    </div>
+                                                    <p className="text-sm text-slate-500 italic mb-8 leading-relaxed">"{t.text}"</p>
+                                                    <h5 className="font-black text-xs uppercase tracking-widest">{t.name}</h5>
+                                                    <span className="text-[10px] text-slate-400 uppercase">{t.role}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </section>
+                            </div>
+                        )}
+
+                        {(view === 'shop' || view === 'search') && (
+                            <ShopView
+                                items={filteredProducts}
+                                title={view === 'search' ? `Results for "${searchQuery}"` : "All Collection"}
+                                activeCategory={activeCategory}
+                                setActiveCategory={setActiveCategory}
+                                addToCart={addToCart}
+                                setView={setView}
+                                setViewedProduct={setViewedProduct}
+                                toggleWishlist={toggleWishlist}
+                                wishlist={wishlist}
+                            />
+                        )}
+
+                        {view === 'product' && viewedProduct && (
+                            <div className="animate-in py-20 max-w-7xl mx-auto px-6">
+                                <div className="grid lg:grid-cols-2 gap-20">
+                                    <div className="aspect-[3/4] bg-[#f9f9f9] overflow-hidden rounded-sm">
+                                        <img src={viewedProduct.image} className="w-full h-full object-cover" alt={viewedProduct.name} />
+                                    </div>
+                                    <div>
+                                        <p className="text-[11px] font-black uppercase tracking-[0.3em] text-rose-500">{viewedProduct.category} / {viewedProduct.brand}</p>
+                                        <h2 className="text-5xl font-light italic mb-6 leading-tight">{viewedProduct.name}</h2>
+                                        <span className="text-4xl font-black italic mb-10 block">${viewedProduct.price.toFixed(2)}</span>
+                                        <p className="text-sm text-slate-500 leading-relaxed italic mb-10">{viewedProduct.description}</p>
+                                        <div className="flex gap-4">
+                                            <button onClick={() => addToCart(viewedProduct)} className="flex-1 bg-black text-white py-5 text-[11px] font-black uppercase tracking-[0.3em] hover:bg-rose-600 transition-all">Add To Bag</button>
+                                            <button onClick={() => toggleWishlist(viewedProduct)} className="p-5 border-2 border-slate-100 hover:border-black transition-all">
+                                                <Icon name="Heart" className={`w-5 h-5 ${wishlist.some(p => p.id === viewedProduct.id) ? 'fill-current text-rose-500' : ''}`} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {view === 'account' && <AccountView user={user} />}
+                        {view === 'contact' && <ContactView />}
+                        {view === 'faq' && <FAQView />}
+                        {view === 'policy' && <SupportView type={policyType} />}
+                        {view === 'checkout' && <CheckoutView checkoutStep={checkoutStep} setCheckoutStep={setCheckoutStep} cart={cart} cartTotal={cartTotal} setView={setView} setCart={setCart} />}
+                    </main>
+
+                    <Footer setView={setView} setPolicyType={setPolicyType} />
+
+                    {/* Cart Drawer */}
+                    <div className={`fixed inset-0 z-[200] bg-black/40 backdrop-blur-md transition-opacity duration-500 ${isCartOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={() => setIsCartOpen(false)} />
+                    <div className={`fixed right-0 top-0 h-full w-full max-w-md bg-white z-[210] shadow-2xl transition-transform duration-700 ${isCartOpen ? 'translate-x-0' : 'translate-x-full'} flex flex-col`}>
+                        <div className="p-10 border-b flex justify-between items-center bg-stone-50">
+                            <h3 className="text-[11px] font-black uppercase tracking-[0.4em] italic">Bag ({cartCount})</h3>
+                            <Icon name="X" className="w-7 h-7 cursor-pointer text-slate-300 hover:text-black" onClick={() => setIsCartOpen(false)} />
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-10 space-y-10 custom-scrollbar">
+                            {cart.length === 0 ? (
+                                <p className="text-center py-20 text-slate-400 font-bold uppercase tracking-widest text-xs">Your bag is empty</p>
+                            ) : (
+                                cart.map(item => (
+                                    <div key={item.id} className="flex gap-8 group">
+                                        <div className="w-24 aspect-[3/4] bg-stone-50 overflow-hidden shrink-0"><img src={item.image} className="w-full h-full object-cover" alt={item.name} /></div>
+                                        <div className="flex-1 flex flex-col justify-between py-2">
+                                            <div className="flex justify-between items-start">
+                                                <h5 className="text-[12px] font-black uppercase tracking-tight">{item.name}</h5>
+                                                <button onClick={() => removeFromCart(item.id)}><Icon name="Trash2" className="w-4 h-4 text-slate-200 hover:text-rose-500 cursor-pointer" /></button>
+                                            </div>
+                                            <div className="flex justify-between items-end">
+                                                <div className="flex items-center text-[10px] font-black border border-slate-100 p-1">
+                                                    <button onClick={() => updateQuantity(item.id, -1)} className="px-3 py-1">-</button>
+                                                    <span className="w-8 text-center">{item.quantity}</span>
+                                                    <button onClick={() => updateQuantity(item.id, 1)} className="px-3 py-1">+</button>
+                                                </div>
+                                                <span className="text-sm font-black italic">${(item.price * item.quantity).toFixed(2)}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                        {cart.length > 0 && (
+                            <div className="p-10 border-t border-slate-100 bg-stone-50">
+                                <div className="flex justify-between items-center mb-10">
+                                    <span className="text-[10px] font-black text-slate-400 italic">Total</span>
+                                    <span className="text-3xl font-black italic tracking-tighter">${cartTotal.toFixed(2)}</span>
+                                </div>
+                                <button onClick={() => { setIsCartOpen(false); setView('checkout'); }} className="w-full bg-black text-white py-6 text-[11px] font-black uppercase tracking-[0.3em] hover:bg-rose-600 transition-all shadow-xl">Checkout</button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // --- SUB-VIEWS ---
+        function ProductCard({ product, addToCart, setView, setViewedProduct, toggleWishlist, wishlist }) {
+            return (
+                <div className="group animate-in">
+                    <div className="relative aspect-[3/4] bg-[#f8f8f8] overflow-hidden mb-5 rounded-sm">
+                        {product.tag && (
+                            <span className={`absolute top-4 left-4 z-10 text-[9px] font-black text-white px-2 py-0.5 tracking-tighter uppercase ${product.tag === 'New' ? 'bg-black' : 'bg-rose-500'}`}>
+                                {product.tag}
+                            </span>
+                        )}
+                        <img src={product.image} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" alt={product.name} />
+                        <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-end p-4 gap-2">
+                            <button onClick={() => toggleWishlist(product)} className="p-2.5 bg-white rounded-full shadow-lg hover:bg-rose-500 hover:text-white transition-all">
+                                <Icon name="Heart" className={`w-4 h-4 ${wishlist.some(p => p.id === product.id) ? 'fill-current text-rose-500 hover:text-white' : ''}`} />
+                            </button>
+                            <button onClick={() => { setViewedProduct(product); setView('product'); }} className="p-2.5 bg-white rounded-full shadow-lg hover:bg-black hover:text-white transition-all">
+                                <Icon name="Eye" className="w-4 h-4" />
+                            </button>
+                        </div>
+                        <button disabled={product.availability === "Out of Stock"} onClick={() => addToCart(product)} className="absolute bottom-0 inset-x-0 bg-black text-white py-4 text-[10px] font-black uppercase translate-y-full group-hover:translate-y-0 transition-transform hover:bg-rose-600 disabled:bg-slate-300">
+                            {product.availability === "Out of Stock" ? 'Sold Out' : 'Add To Bag'}
+                        </button>
+                    </div>
+                    <div className="text-center">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-300 mb-1 block">{product.brand}</span>
+                        <h4 onClick={() => { setViewedProduct(product); setView('product'); }} className="text-[13px] font-bold cursor-pointer hover:text-rose-500 transition-colors uppercase tracking-tight">{product.name}</h4>
+                        <div className="flex justify-center items-center gap-3 mt-1">
+                            <span className="text-sm font-black text-black">${product.price.toFixed(2)}</span>
+                            {product.oldPrice && <span className="text-[11px] text-slate-300 line-through">${product.oldPrice.toFixed(2)}</span>}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function ShopView({ items, title, activeCategory, setActiveCategory, addToCart, setView, setViewedProduct, toggleWishlist, wishlist }) {
+            const [priceRange, setPriceRange] = useState(300);
+            const [selectedBrand, setSelectedBrand] = useState("All");
+            const [sortBy, setSortBy] = useState('newest');
+
+            const filtered = useMemo(() => {
+                let result = items.filter(p => activeCategory === "All" || p.category === activeCategory);
+                result = result.filter(p => p.price <= priceRange);
+                if (selectedBrand !== "All") result = result.filter(p => p.brand === selectedBrand);
+                if (sortBy === 'price-low') result.sort((a, b) => a.price - b.price);
+                if (sortBy === 'price-high') result.sort((a, b) => b.price - a.price);
+                return result;
+            }, [items, activeCategory, priceRange, selectedBrand, sortBy]);
+
+            return (
+                <div className="py-20 max-w-7xl mx-auto px-6 flex flex-col lg:flex-row gap-16">
+                    <div className="w-full lg:w-64 flex-shrink-0 space-y-12">
+                        <div>
+                            <h5 className="text-[11px] font-black uppercase tracking-widest mb-6 border-b border-slate-100 pb-2">Category</h5>
+                            <div className="space-y-3">
+                                {CATEGORIES.map(cat => (
+                                    <button key={cat} onClick={() => setActiveCategory(cat)} className={`block text-xs font-bold uppercase tracking-wider transition-colors ${activeCategory === cat ? 'text-rose-500' : 'text-slate-400 hover:text-black'}`}>{cat}</button>
+                                ))}
+                            </div>
+                        </div>
+                        <div>
+                            <h5 className="text-[11px] font-black uppercase tracking-widest mb-6 border-b border-slate-100 pb-2">Brand</h5>
+                            <div className="space-y-3">
+                                <button onClick={() => setSelectedBrand("All")} className={`block text-xs font-bold uppercase transition-colors ${selectedBrand === "All" ? 'text-rose-500' : 'text-slate-400'}`}>All Brands</button>
+                                {BRANDS.map(b => (
+                                    <button key={b} onClick={() => setSelectedBrand(b)} className={`block text-xs font-bold uppercase transition-colors ${selectedBrand === b ? 'text-rose-500' : 'text-slate-400'}`}>{b}</button>
+                                ))}
+                            </div>
+                        </div>
+                        <div>
+                            <h5 className="text-[11px] font-black uppercase tracking-widest mb-6 border-b border-slate-100 pb-2">Price Filter</h5>
+                            <input type="range" min="0" max="300" value={priceRange} onChange={(e) => setPriceRange(e.target.value)} className="w-full" />
+                            <div className="flex justify-between text-[10px] font-black mt-2"><span>$0</span><span>${priceRange}</span></div>
+                        </div>
+                    </div>
+                    <div className="flex-1">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-4">
+                            <div><h3 className="text-2xl font-black italic">{title}</h3></div>
+                            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="text-[11px] font-black uppercase border-b border-black py-1 bg-transparent">
+                                <option value="newest">Newest</option>
+                                <option value="price-low">Price: Low to High</option>
+                                <option value="price-high">Price: High to Low</option>
+                            </select>
+                        </div>
+                        <div className="grid grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
+                            {filtered.map(product => <ProductCard key={product.id} product={product} addToCart={addToCart} setView={setView} setViewedProduct={setViewedProduct} toggleWishlist={toggleWishlist} wishlist={wishlist} />)}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function AccountView({ user }) {
+            return (
+                <div className="py-20 max-w-7xl mx-auto px-6 flex flex-col lg:flex-row gap-16">
+                    <div className="w-full lg:w-72 space-y-2 flex-shrink-0">
+                        <h3 className="text-xl font-black mb-8 px-4 italic border-l-4 border-rose-500">My Profile</h3>
+                        <button className="w-full flex items-center gap-4 px-5 py-4 rounded-sm text-[11px] font-black uppercase tracking-widest bg-black text-white shadow-lg"><Icon name="User" className="w-4 h-4" /> Dashboard</button>
+                        <button className="w-full flex items-center gap-4 px-5 py-4 rounded-sm text-[11px] font-black uppercase tracking-widest hover:bg-slate-50"><Icon name="Package" className="w-4 h-4" /> My Orders</button>
+                        <button className="w-full flex items-center gap-4 px-5 py-4 text-[11px] font-black uppercase tracking-widest text-rose-500 hover:bg-rose-50"><Icon name="LogOut" className="w-4 h-4" /> Logout</button>
+                    </div>
+                    <div className="flex-1 bg-white border border-slate-100 p-8 md:p-12 rounded-sm shadow-sm">
+                        <h4 className="text-2xl font-light italic mb-8">Welcome back, <span className="font-black underline decoration-rose-500/20 underline-offset-8">{user.name}</span></h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-12">
+                            <div className="p-8 bg-black text-white rounded-sm text-center">
+                                <Icon name="Package" className="w-8 h-8 mb-4 text-rose-500 mx-auto" />
+                                <h5 className="font-black text-3xl">{user.orders.length} Orders</h5>
+                            </div>
+                            <div className="p-8 bg-stone-50 border border-slate-100 rounded-sm text-center">
+                                <Icon name="Bell" className="w-8 h-8 mb-4 text-slate-300 mx-auto" />
+                                <h5 className="font-black text-3xl">450 pts</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function SupportView({ type }) {
+            const content = {
+                privacy: { title: "Privacy Policy", text: "At Advan, we take your privacy seriously. This policy outlines how we collect, use, and protect your personal information." },
+                shipping: { title: "Shipping Policy", text: "We offer global shipping. Orders over $200 qualify for free standard shipping." },
+                terms: { title: "Terms & Conditions", text: "By accessing this website, you agree to comply with our service terms. All content is owned by Advan Studio." }
+            };
+            return (
+                <div className="py-24 max-w-4xl mx-auto px-6">
+                    <div className="text-center mb-16"><h2 className="text-4xl font-black italic mb-4">{content[type].title}</h2><div className="w-20 h-1 bg-rose-500 mx-auto" /></div>
+                    <div className="bg-white p-12 border border-slate-100 shadow-sm">
+                        <p className="text-slate-600 leading-loose italic">{content[type].text}</p>
+                    </div>
+                </div>
+            );
+        }
+
+        function FAQView() {
+            return (
+                <div className="py-24 max-w-3xl mx-auto px-6">
+                    <div className="text-center mb-16"><h3 className="text-4xl font-black italic tracking-tighter mb-4">Common Questions</h3></div>
+                    <div className="space-y-4">
+                        {[{ q: "What is your return policy?", a: "We offer a 30-day return policy for unworn items." }, { q: "How do I track my order?", a: "Track via your account dashboard or the link in your email." }].map((faq, i) => (
+                            <details key={i} className="group border border-slate-100 rounded-sm bg-white overflow-hidden">
+                                <summary className="flex justify-between items-center p-6 cursor-pointer hover:bg-slate-50 list-none">
+                                    <h5 className="text-sm font-black uppercase tracking-widest">{faq.q}</h5>
+                                    <Icon name="Plus" className="w-4 h-4 group-open:rotate-45 transition-transform" />
+                                </summary>
+                                <div className="p-6 pt-0 text-sm text-slate-500 italic leading-relaxed border-t border-slate-50">{faq.a}</div>
+                            </details>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        function ContactView() {
+            return (
+                <div className="py-24 max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-20">
+                    <div>
+                        <h4 className="text-5xl font-light italic mb-10 leading-tight">We Love to <br /><span className="font-black underline decoration-rose-500/20 underline-offset-8">Hear From You</span></h4>
+                        <div className="space-y-12">
+                            <div className="flex items-start gap-8">
+                                <div className="w-14 h-14 bg-black text-white flex items-center justify-center shrink-0 shadow-lg"><Icon name="MapPin" className="w-7 h-7" /></div>
+                                <div><h5 className="text-[11px] font-black uppercase tracking-widest mb-3">Our Atelier</h5><p className="text-sm text-slate-500 italic leading-relaxed">450 Fashion Avenue, Suite 300<br />Manhattan, New York 10123</p></div>
+                            </div>
+                            <div className="flex items-start gap-8">
+                                <div className="w-14 h-14 bg-black text-white flex items-center justify-center shrink-0 shadow-lg"><Icon name="MessageSquare" className="w-7 h-7" /></div>
+                                <div><h5 className="text-[11px] font-black uppercase tracking-widest mb-3">Customer Care</h5><p className="text-sm text-slate-500 italic leading-relaxed">support@advan.com<br />+1 (212) 555-0198</p></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="bg-stone-50 p-12 lg:p-16 border border-slate-100 shadow-xl rounded-sm">
+                        <form className="space-y-6">
+                            <div className="grid grid-cols-2 gap-6">
+                                <input type="text" placeholder="FULL NAME" className="w-full bg-white p-5 text-[10px] font-black border border-slate-100 focus:outline-none" />
+                                <input type="email" placeholder="EMAIL ADDRESS" className="w-full bg-white p-5 text-[10px] font-black border border-slate-100 focus:outline-none" />
+                            </div>
+                            <textarea placeholder="HOW CAN WE HELP?" className="w-full bg-white p-5 h-48 text-[10px] font-black border border-slate-100 focus:outline-none resize-none"></textarea>
+                            <button className="w-full bg-black text-white py-6 text-[11px] font-black uppercase tracking-[0.3em] hover:bg-rose-600 transition-all shadow-xl">Send Inquiry</button>
+                        </form>
+                    </div>
+                </div>
+            );
+        }
+
+        function CheckoutView({ checkoutStep, setCheckoutStep, cart, cartTotal, setView, setCart }) {
+            return (
+                <div className="py-24 max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-24">
+                    <div className="space-y-16">
+                        <div className="flex items-center gap-6">
+                            {[1, 2, 3].map(step => (
+                                <div key={step} className="flex items-center gap-4">
+                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-xs transition-all ${checkoutStep >= step ? 'bg-black text-white' : 'bg-slate-50 text-slate-300'}`}>{step}</div>
+                                    {step < 3 && <div className={`w-16 h-[2px] ${checkoutStep > step ? 'bg-black' : 'bg-slate-100'}`} />}
+                                </div>
+                            ))}
+                        </div>
+                        {checkoutStep === 1 && (
+                            <div className="space-y-8">
+                                <h4 className="text-3xl font-black italic">Shipping <span className="text-rose-500">Information</span></h4>
+                                <div className="grid grid-cols-2 gap-6">
+                                    <input type="text" placeholder="FIRST NAME" className="p-5 bg-stone-50 border border-slate-100 text-[10px] font-black focus:outline-none" />
+                                    <input type="text" placeholder="LAST NAME" className="p-5 bg-stone-50 border border-slate-100 text-[10px] font-black focus:outline-none" />
+                                    <input type="email" placeholder="EMAIL ADDRESS" className="col-span-2 p-5 bg-stone-50 border border-slate-100 text-[10px] font-black focus:outline-none" />
+                                    <input type="text" placeholder="ADDRESS" className="col-span-2 p-5 bg-stone-50 border border-slate-100 text-[10px] font-black focus:outline-none" />
+                                </div>
+                                <button onClick={() => setCheckoutStep(2)} className="w-full bg-black text-white py-6 text-[11px] font-black uppercase tracking-[0.3em] hover:bg-rose-600 transition-all shadow-xl">Continue to Payment</button>
+                            </div>
+                        )}
+                        {checkoutStep === 2 && (
+                            <div className="space-y-8">
+                                <h4 className="text-3xl font-black italic">Payment <span className="text-rose-500">Method</span></h4>
+                                <div className="p-8 bg-stone-50 border border-slate-100 space-y-6">
+                                    <input type="text" placeholder="CARD NUMBER" className="w-full bg-white p-5 text-[10px] font-black focus:outline-none border border-slate-200" />
+                                    <div className="grid grid-cols-2 gap-6">
+                                        <input type="text" placeholder="MM/YY" className="bg-white p-5 text-[10px] font-black focus:outline-none border border-slate-200" />
+                                        <input type="text" placeholder="CVV" className="bg-white p-5 text-[10px] font-black focus:outline-none border border-slate-200" />
+                                    </div>
+                                </div>
+                                <button onClick={() => setCheckoutStep(3)} className="w-full bg-black text-white py-6 text-[11px] font-black uppercase tracking-[0.3em] hover:bg-rose-600 shadow-xl">Complete Order Review</button>
+                            </div>
+                        )}
+                        {checkoutStep === 3 && (
+                            <div className="text-center py-20">
+                                <div className="w-24 h-24 bg-rose-50 rounded-full flex items-center justify-center mx-auto mb-8"><Icon name="CheckCircle" className="w-12 h-12 text-rose-500" /></div>
+                                <h4 className="text-5xl font-black italic mb-6">Confirmed!</h4>
+                                <p className="text-slate-400 text-sm font-black uppercase tracking-widest mb-12 italic">Thank you for your purchase.</p>
+                                <button onClick={() => { setView('home'); setCheckoutStep(1); setCart([]); }} className="px-16 py-6 bg-black text-white text-[10px] font-black uppercase tracking-[0.4em] hover:bg-rose-600 shadow-2xl transition-all">Return to Home</button>
+                            </div>
+                        )}
+                    </div>
+                    <div className="bg-stone-50 p-12 h-fit border border-stone-200 rounded-sm">
+                        <h5 className="text-[11px] font-black uppercase tracking-[0.4em] mb-12 pb-4 border-b border-stone-200 italic">Order Review</h5>
+                        <div className="space-y-8 mb-12">
+                            {cart.map(item => (
+                                <div key={item.id} className="flex justify-between items-center text-xs font-bold">
+                                    <span>{item.name} ×{item.quantity}</span><span className="font-black">${(item.price * item.quantity).toFixed(2)}</span>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="flex justify-between text-3xl font-black italic pt-8 text-black"><span>Total</span><span>${cartTotal.toFixed(2)}</span></div>
+                    </div>
+                </div>
+            );
+        }
+
+        function Footer({ setView, setPolicyType }) {
+            return (
+                <footer className="bg-[#fcfcfc] pt-24 pb-12 border-t border-slate-50">
+                    <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-20">
+                        <div>
+                            <h4 className="text-2xl font-black italic tracking-tighter mb-8">Advan.</h4>
+                            <p className="text-[13px] text-slate-500 leading-relaxed max-w-xs mb-8 italic">Minimal essentials for the modern consumer.</p>
+                            <div className="flex gap-4">
+                                <Icon name="Facebook" className="w-4 h-4 cursor-pointer hover:text-rose-500" />
+                                <Icon name="Instagram" className="w-4 h-4 cursor-pointer hover:text-rose-500" />
+                                <Icon name="Twitter" className="w-4 h-4 cursor-pointer hover:text-rose-500" />
+                                <Icon name="Youtube" className="w-4 h-4 cursor-pointer hover:text-rose-500" />
+                            </div>
+                        </div>
+                        <div>
+                            <h5 className="text-[11px] font-black uppercase tracking-[0.3em] mb-8">Explore</h5>
+                            <ul className="text-[12px] text-slate-500 space-y-4 font-bold uppercase tracking-tight">
+                                <li onClick={() => setView('shop')} className="cursor-pointer hover:text-rose-500">All Products</li>
+                                <li onClick={() => setView('faq')} className="cursor-pointer hover:text-rose-500">FAQs</li>
+                                <li onClick={() => { setView('policy'); setPolicyType('privacy'); }} className="cursor-pointer hover:text-rose-500">Privacy Policy</li>
+                                <li onClick={() => { setView('policy'); setPolicyType('terms'); }} className="cursor-pointer hover:text-rose-500">Terms & Conditions</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h5 className="text-[11px] font-black uppercase tracking-[0.3em] mb-8">Support</h5>
+                            <ul className="text-[12px] text-slate-500 space-y-4 font-bold uppercase tracking-tight">
+                                <li onClick={() => setView('contact')} className="cursor-pointer hover:text-rose-500">Contact Us</li>
+                                <li onClick={() => { setView('policy'); setPolicyType('shipping'); }} className="cursor-pointer hover:text-rose-500">Shipping Policy</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h5 className="text-[11px] font-black uppercase tracking-[0.3em] mb-8">Newsletter</h5>
+                            <div className="relative border-b border-black">
+                                <input type="text" placeholder="Email Address" className="w-full bg-transparent py-2 text-[11px] font-black focus:outline-none" />
+                                <button className="absolute right-0 bottom-2 text-[10px] font-black hover:text-rose-500">JOIN</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="max-w-7xl mx-auto px-6 pt-10 border-t border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">
+                        <p>© 2024 Advan Studio. All Rights Reserved.</p>
+                    </div>
+                </footer>
+            );
+        }
+
+        // --- RENDER ---
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+
+</html>
